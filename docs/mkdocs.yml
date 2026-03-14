@@ -1,0 +1,74 @@
+site_name: blockfont
+site_description: Unicode block letter rendering for terminal applications
+site_author: Tim Sutton / Kartoza
+site_url: https://timlinux.github.io/blockfont
+
+repo_name: timlinux/blockfont
+repo_url: https://github.com/timlinux/blockfont
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep orange
+      accent: orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep orange
+      accent: orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - User Guide:
+    - Getting Started: user/getting-started.md
+    - Basic Usage: user/basic-usage.md
+    - Widget Integration: user/widget.md
+    - Vim Editing: user/vim-editing.md
+    - Animations: user/animations.md
+  - Developer Guide:
+    - Architecture: developer/architecture.md
+    - Contributing: developer/contributing.md
+    - API Reference: developer/api.md
+  - About:
+    - License: about/license.md
+    - Changelog: about/changelog.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/timlinux/blockfont
+    - icon: fontawesome/solid/heart
+      link: https://github.com/sponsors/timlinux
+
+copyright: |
+  Made with &hearts; by <a href="https://kartoza.com">Kartoza</a> |
+  <a href="https://github.com/sponsors/timlinux">Donate!</a> |
+  <a href="https://github.com/timlinux/blockfont">GitHub</a>
