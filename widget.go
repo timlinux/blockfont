@@ -308,97 +308,30 @@ func (w *Widget) Render() []string {
 		return []string{}
 	}
 
-	// Handle word wrapping
-	var textLines []string
-	if w.options.WordWrap && w.options.Width > 0 {
-		textLines = WrapOnWordBoundaries(text, w.options.Width)
-	} else {
-		textLines = []string{text}
-	}
-
-	var result []string
-	globalCharIdx := 0
-
-	for _, lineText := range textLines {
-		// Render each character
-		letterLines := RenderWord(lineText)
-		styledLines := make([]string, LetterHeight)
-
-		runes := []rune(lineText)
-		for i := range LetterHeight {
-			var lineBuilder strings.Builder
-			for charIdx, letterLine := range letterLines[i] {
-				// Determine style for this character
-				style := w.getCharStyle(globalCharIdx + charIdx)
-
-				// Handle cursor in vim mode
-				if w.options.VimMode && w.focused {
-					cursorIdx := w.buffer.CursorIndex()
-					if globalCharIdx+charIdx == cursorIdx {
-						if w.buffer.IsInsertMode() && w.options.CursorStyle == CursorLine {
-							lineBuilder.WriteString(ANSIWhite + "|" + ANSIReset)
-						} else {
-							letterLine = InvertLine(letterLine)
-						}
-					}
-				}
-
-				if style != nil {
-					lineBuilder.WriteString(style.Render(letterLine))
-				} else {
-					lineBuilder.WriteString(letterLine)
-				}
-
-				// Add spacing between letters
-				if charIdx < len(runes)-1 {
-					lineBuilder.WriteString(strings.Repeat(" ", LetterSpacing))
-				}
-			}
-
-			// Handle cursor at end of line in insert mode
-			if w.options.VimMode && w.focused && w.buffer.IsInsertMode() {
-				cursorIdx := w.buffer.CursorIndex()
-				if cursorIdx == globalCharIdx+len(runes) {
-					if w.options.CursorStyle == CursorLine {
-						lineBuilder.WriteString(ANSIWhite + "|" + ANSIReset)
-					} else {
-						// Show inverted space block
-						spaceBlock := BlockLetters[' ']
-						if i < len(spaceBlock) {
-							lineBuilder.WriteString(InvertLine(spaceBlock[i]))
-						}
-					}
-				}
-			}
-
-			styledLines[i] = lineBuilder.String()
+	// Use the full-featured RenderWithCursor for vim mode
+	if w.options.VimMode && w.focused {
+		cursorIdx := w.buffer.CursorIndex()
+		isInsert := w.buffer.IsInsertMode()
+		maxWidth := 0
+		if w.options.WordWrap {
+			maxWidth = w.options.Width
 		}
-
-		result = append(result, styledLines...)
-		globalCharIdx += len(runes) + 1 // +1 for space between words
+		return RenderWithCursor(text, cursorIdx, w.highlights, isInsert, maxWidth, w.options.Theme)
 	}
 
-	return result
-}
-
-// getCharStyle returns the lipgloss style for a character at the given index
-func (w *Widget) getCharStyle(index int) *lipgloss.Style {
-	// Check highlights first
-	if w.highlights != nil && index < len(w.highlights) {
-		highlight := w.highlights[index]
-		if highlight != HighlightNone {
-			style := w.options.Theme.NewStyle(highlight)
-			return &style
+	// Simple rendering without cursor
+	if w.highlights != nil {
+		// Use RenderWithCursor but with cursor at -1 (off-screen)
+		maxWidth := 0
+		if w.options.WordWrap {
+			maxWidth = w.options.Width
 		}
+		return RenderWithCursor(text, -1, w.highlights, false, maxWidth, w.options.Theme)
 	}
 
-	// Check colors
-	if w.colors != nil && index < len(w.colors) && w.colors[index] != "" {
-		style := lipgloss.NewStyle().Foreground(w.colors[index])
-		return &style
-	}
-
-	return nil
+	// Basic rendering without highlights or cursor
+	lines := RenderPlainText(text, "")
+	return lines
 }
 
 // RenderCentered renders the text centered within the given width

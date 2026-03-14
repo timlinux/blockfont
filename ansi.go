@@ -10,18 +10,20 @@ import (
 
 // ANSI escape code constants for terminal styling
 const (
-	ANSIReset   = "\033[0m"
-	ANSIRed     = "\033[1;31m"
-	ANSIGreen   = "\033[1;32m"
-	ANSIOrange  = "\033[1;33m"
-	ANSIBlue    = "\033[1;34m"
-	ANSIMagenta = "\033[1;35m"
-	ANSICyan    = "\033[1;36m"
-	ANSIWhite   = "\033[1;37m"
-	ANSIInverse = "\033[7m"
-	ANSIDim     = "\033[2m"
-	ANSIBold    = "\033[1m"
-	ANSIItalic  = "\033[3m"
+	ANSIReset     = "\033[0m"
+	ANSIRed       = "\033[1;31m"
+	ANSIGreen     = "\033[1;32m"
+	ANSIOrange    = "\033[1;33m"
+	ANSIYellow    = "\033[1;33m" // Alias for orange
+	ANSIBlue      = "\033[1;34m"
+	ANSIMagenta   = "\033[1;35m"
+	ANSICyan      = "\033[1;36m"
+	ANSIWhite     = "\033[1;37m"
+	ANSIInverse   = "\033[7m"
+	ANSIDim       = "\033[2m"
+	ANSIBold      = "\033[1m"
+	ANSIItalic    = "\033[3m"
+	ANSIUnderline = "\033[4m"
 )
 
 // RemoveANSI removes ANSI escape codes from a string.

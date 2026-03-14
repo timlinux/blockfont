@@ -92,8 +92,11 @@ blockfont is a Go library for rendering Unicode block letters in terminal applic
 ### FR-002: Core Rendering
 - `RenderWord()` returns 2D array of character lines
 - `RenderText()` returns joined string with newlines
+- `RenderWithCursor()` renders with cursor position, highlights, insert mode, and word wrapping
+- `RenderPlainText()` renders without cursor or highlights
 - `GetLetterWidth()` returns character width in runes
 - `GetTotalWidth()` returns word width including spacing
+- `CalculateTotalWidth()` calculates width including cursor position
 
 ### FR-003: Buffer Operations
 - Multi-line text support

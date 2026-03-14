@@ -13,6 +13,7 @@ blockfont is organized as a single Go package providing Unicode block letter ren
 | File | Description |
 |------|-------------|
 | `font.go` | Block letter definitions and core rendering functions |
+| `render.go` | Full-featured rendering with cursor, highlights, and word wrapping |
 | `widget.go` | High-level tea.Model widget for bubbletea integration |
 | `buffer.go` | Vim-style text buffer with editing operations |
 | `layout.go` | Text alignment and layout utilities |
