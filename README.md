@@ -2,6 +2,8 @@
 
 Unicode block letter rendering for terminal applications.
 
+![blockfont demo](demo/blockfont-demo.gif)
+
 ```
 ██████ ██     ◢████◣ ◢████◣ ██ ◢█◤ ██████ ◢████◣ ██◣ ██ ◥█  █◤
 ██  ██ ██     ██  ██ ██  ██ ██◢█◤  ██     ██  ██ ███◣██  ◥██◤
@@ -12,13 +14,15 @@ Unicode block letter rendering for terminal applications.
 
 ## Features
 
-- **Block Letter Rendering**: Convert text to beautiful Unicode block letters with smooth rounded corners
+- **Block Letter Rendering**: Convert text to beautiful Unicode block letters using `█ ◢ ◣ ◤ ◥`
+- **Full Character Set**: Lowercase, uppercase, numbers, and common punctuation
 - **Vim-Style Editing**: Full vim buffer with normal/insert modes and common operations
+- **Character Highlighting**: Color individual characters for typing games, diffs, etc.
 - **Spring Animations**: Smooth physics-based transitions using harmonica
+- **Word Wrapping**: Intelligent word-boundary wrapping with cursor tracking
 - **Lipgloss Integration**: Full charmbracelet/lipgloss styling support
 - **Bubbletea Widget**: Ready-to-use `tea.Model` for easy integration
-- **Character Highlighting**: Color individual characters for typing games, diffs, etc.
-- **Layout Utilities**: Centering, alignment, and word wrapping
+- **Layout Utilities**: Centering, alignment, and positioning helpers
 
 ## Installation
 
@@ -59,9 +63,7 @@ type model struct {
     widget *blockfont.Widget
 }
 
-func (m model) Init() tea.Cmd {
-    return nil
-}
+func (m model) Init() tea.Cmd { return nil }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     w, cmd := m.widget.Update(msg)
@@ -76,154 +78,162 @@ func (m model) View() string {
 func main() {
     opts := blockfont.DefaultWidgetOptions()
     opts.Width = 80
-    opts.Alignment = blockfont.AlignCenter
     opts.VimMode = true
+    opts.Theme = blockfont.KartozaTheme
 
     widget := blockfont.NewWidget(opts)
-    widget.SetText("hello world")
+    widget.SetText("edit me")
+    widget.Focus()
 
-    p := tea.NewProgram(model{widget: widget})
-    p.Run()
+    tea.NewProgram(model{widget: widget}).Run()
 }
 ```
 
 ### Character Highlighting
 
-```go
-widget := blockfont.NewWidget(blockfont.DefaultWidgetOptions())
-widget.SetText("typing")
+Perfect for typing games and diffs:
 
-// Set highlights for a typing game
+```go
+text := "typing"
 highlights := []blockfont.CharHighlight{
-    blockfont.HighlightCorrect,   // 't' - correct
-    blockfont.HighlightCorrect,   // 'y' - correct
-    blockfont.HighlightIncorrect, // 'p' - wrong
-    blockfont.HighlightPending,   // 'i' - not typed yet
-    blockfont.HighlightPending,   // 'n' - not typed yet
-    blockfont.HighlightPending,   // 'g' - not typed yet
+    blockfont.HighlightCorrect,   // t - green
+    blockfont.HighlightCorrect,   // y - green
+    blockfont.HighlightIncorrect, // p - red
+    blockfont.HighlightPending,   // i - dim
+    blockfont.HighlightPending,   // n - dim
+    blockfont.HighlightPending,   // g - dim
 }
-widget.SetHighlights(highlights)
+
+lines := blockfont.RenderWithCursor(
+    text, -1, highlights, false, 0, blockfont.DefaultTheme)
+```
+
+## Run the Demo
+
+Try out all features interactively:
+
+```bash
+# Clone the repository
+git clone https://github.com/timlinux/blockfont
+cd blockfont
+
+# Run with make
+make demo
+
+# Or with nix
+nix run
+```
+
+The demo includes 8 screens showcasing:
+- Basic character rendering
+- Character highlighting
+- Vim-style editing
+- Spring animations
+- Word wrapping
+- Theme options
+
+## Development
+
+```bash
+# Enter nix development shell
+nix develop
+
+# Build and test
+make build
+make test
+
+# Run demo
+make demo
+
+# Start documentation server
+make docs-dev
+
+# Record a demo
+nix run .#demo-record
+
+# Play recorded demo
+nix run .#demo-play
 ```
 
 ## API Reference
 
 ### Core Functions
 
-```go
-// Render a word as block letters (returns 6 lines of character arrays)
-func RenderWord(word string) [][]string
-
-// Render text as a single string with newlines
-func RenderText(text string) string
-
-// Get the width of a single character
-func GetLetterWidth(char rune) int
-
-// Get the total width of a word
-func GetTotalWidth(word string) int
-```
+| Function | Description |
+|----------|-------------|
+| `RenderText(text string) string` | Render text with newlines |
+| `RenderWord(word string) [][]string` | Render as 2D array |
+| `RenderWithCursor(...)` | Full rendering with cursor and highlights |
+| `RenderPlainText(text, color string)` | Simple colored rendering |
+| `GetLetterWidth(char rune) int` | Character width |
+| `GetTotalWidth(word string) int` | Word width |
 
 ### Widget
 
-```go
-// Create a new widget with options
-func NewWidget(opts WidgetOptions) *Widget
-
-// Set the text content
-func (w *Widget) SetText(text string)
-
-// Get the current text
-func (w *Widget) Text() string
-
-// Set character highlights
-func (w *Widget) SetHighlights(highlights []CharHighlight)
-
-// Render the widget (implements tea.Model.View)
-func (w *Widget) View() string
-```
-
-### Buffer (Vim Mode)
-
-```go
-// Create a new buffer
-func NewBuffer(text string) *Buffer
-
-// Text manipulation
-func (b *Buffer) Insert(text string)
-func (b *Buffer) Delete(n int) string
-func (b *Buffer) DeleteLine() string
-
-// Cursor movement
-func (b *Buffer) MoveLeft(n int)
-func (b *Buffer) MoveRight(n int)
-func (b *Buffer) MoveUp(n int)
-func (b *Buffer) MoveDown(n int)
-
-// Mode control
-func (b *Buffer) Mode() Mode
-func (b *Buffer) SetMode(mode Mode)
-```
+| Method | Description |
+|--------|-------------|
+| `NewWidget(opts WidgetOptions) *Widget` | Create widget |
+| `SetText(text string)` | Set content |
+| `Text() string` | Get content |
+| `View() string` | Render (tea.Model) |
+| `Update(msg tea.Msg)` | Handle input (tea.Model) |
+| `Focus() / Blur()` | Manage keyboard focus |
+| `Mode() Mode` | Get vim mode |
 
 ### Layout
 
-```go
-// Center lines within a width
-func CenterLines(lines []string, width int) []string
-
-// Left-justify with margin
-func LeftJustify(lines []string, margin int) []string
-
-// Right-justify within width
-func RightJustify(lines []string, width int) []string
-
-// Word wrap text
-func WrapOnWordBoundaries(text string, maxWidth int) []string
-```
+| Function | Description |
+|----------|-------------|
+| `CenterLines(lines, width)` | Center text |
+| `LeftJustify(lines, margin)` | Left-align |
+| `RightJustify(lines, width)` | Right-align |
+| `WrapOnWordBoundaries(text, width)` | Word wrap |
 
 ### Animation
 
-```go
-// Create a new animator
-func NewAnimator() *Animator
-
-// Trigger a transition
-func (a *Animator) TriggerTransition(t TransitionType)
-
-// Update animation (call each frame)
-func (a *Animator) Update() bool
-
-// Get animation values
-func (a *Animator) GetOffset(maxOffset int) int
-func (a *Animator) GetOpacityLevel(maxOpacity float64) float64
-func (a *Animator) GetScaleFactor(minScale float64) float64
-```
+| Method | Description |
+|--------|-------------|
+| `NewAnimator()` | Create animator |
+| `TriggerTransition(type)` | Start animation |
+| `Update() bool` | Advance frame |
+| `GetOpacity() float64` | Current opacity |
+| `GetOffset() int` | Current offset |
 
 ## Supported Characters
 
-- Lowercase letters: a-z
-- Uppercase letters: A-Z
-- Digits: 0-9
-- Punctuation: `. , ; : ! ? - ' " ( ) [ ] { } < > / \ | _ + = * & @ # $ % ^ ` ~`
-- Space
+- **Lowercase**: a-z
+- **Uppercase**: A-Z
+- **Digits**: 0-9
+- **Punctuation**: `. , ; : ! ? - ' " ( ) [ ] { } < > / \ | _ + = * & @ # $ % ^ ` ~`
+- **Space**
 
 ## Themes
 
 ```go
-// Use default theme
-widget.SetTheme(blockfont.DefaultTheme)
+// Default theme (green/red/cyan)
+opts.Theme = blockfont.DefaultTheme
 
-// Use Kartoza-branded theme
-widget.SetTheme(blockfont.KartozaTheme)
+// Kartoza theme (orange/blue)
+opts.Theme = blockfont.KartozaTheme
 
-// Create custom theme
-customTheme := blockfont.Theme{
-    Primary:   lipgloss.Color("#FFFFFF"),
-    Correct:   lipgloss.Color("#00FF00"),
-    Incorrect: lipgloss.Color("#FF0000"),
-    // ... etc
+// Custom theme
+opts.Theme = blockfont.Theme{
+    Correct:   blockfont.ANSIGreen,
+    Incorrect: blockfont.ANSIRed,
+    Cursor:    blockfont.ANSICyan,
+    Pending:   blockfont.ANSIDim,
 }
-widget.SetTheme(customTheme)
 ```
+
+## Documentation
+
+Full documentation is available at the [documentation site](https://timlinux.github.io/blockfont).
+
+- [Getting Started](https://timlinux.github.io/blockfont/user/getting-started/)
+- [Widget Guide](https://timlinux.github.io/blockfont/user/widget/)
+- [Vim Editing](https://timlinux.github.io/blockfont/user/vim-editing/)
+- [Animations](https://timlinux.github.io/blockfont/user/animations/)
+- [API Reference](https://timlinux.github.io/blockfont/developer/api/)
 
 ## Contributing
 
