@@ -114,7 +114,7 @@ func TestGetTotalWidth(t *testing.T) {
 	}{
 		{"", 0},
 		{"a", 6},
-		{"ab", 14}, // 6 + 1 (spacing) + 7 (b has trailing space)
+		{"ab", 13}, // 6 + 1 (spacing) + 6
 	}
 
 	for _, tt := range tests {

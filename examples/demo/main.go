@@ -20,6 +20,8 @@ type screen int
 
 const (
 	screenWelcome screen = iota
+	screenLowercase
+	screenUppercase
 	screenBasicRender
 	screenHighlights
 	screenVimEditing
@@ -31,11 +33,13 @@ const (
 
 var screenNames = []string{
 	"Welcome",
-	"Basic Rendering",
-	"Character Highlights",
-	"Vim Editing",
+	"Lowercase",
+	"Uppercase",
+	"Mixed",
+	"Highlights",
+	"Vim",
 	"Animations",
-	"Word Wrapping",
+	"Wrap",
 	"Themes",
 	"Credits",
 }
@@ -142,8 +146,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currentScreen++
 			}
 
-		case "1", "2", "3", "4", "5", "6", "7", "8":
-			idx := int(msg.Runes[0] - '1')
+		case "1", "2", "3", "4", "5", "6", "7", "8", "9", "0":
+			var idx int
+			if msg.String() == "0" {
+				idx = 9
+			} else {
+				idx = int(msg.Runes[0] - '1')
+			}
 			if idx >= 0 && idx <= int(screenCredits) {
 				m.currentScreen = screen(idx)
 			}
@@ -207,6 +216,10 @@ func (m model) View() string {
 	switch m.currentScreen {
 	case screenWelcome:
 		content = m.viewWelcome()
+	case screenLowercase:
+		content = m.viewLowercase()
+	case screenUppercase:
+		content = m.viewUppercase()
 	case screenBasicRender:
 		content = m.viewBasicRender()
 	case screenHighlights:
@@ -227,7 +240,7 @@ func (m model) View() string {
 	nav := m.buildNavigation()
 
 	// Build help footer
-	help := helpStyle.Render("[←/→] Navigate • [1-8] Jump to screen • [q] Quit")
+	help := helpStyle.Render("[←/→] Navigate • [1-9,0] Jump to screen • [q] Quit")
 
 	return fmt.Sprintf("%s\n\n%s\n\n%s", nav, content, help)
 }
@@ -277,25 +290,47 @@ func (m model) viewWelcome() string {
 	return fmt.Sprintf("%s\n\n%s\n\n%s", title, subtitle, featureBox)
 }
 
-func (m model) viewBasicRender() string {
-	s := titleStyle.Width(m.width).Render("Basic Rendering")
+func (m model) viewLowercase() string {
+	s := titleStyle.Width(m.width).Render("Lowercase Alphabet")
 	s += "\n\n"
 
-	// Show lowercase
-	s += subtitleStyle.Render("Lowercase letters:") + "\n"
-	s += blockfont.RenderText("abcdef") + "\n\n"
+	s += subtitleStyle.Render("a - m:") + "\n"
+	s += blockfont.RenderText("abcdefghijklm") + "\n\n"
 
-	// Show uppercase
-	s += subtitleStyle.Render("Uppercase letters:") + "\n"
-	s += blockfont.RenderText("GHIJKL") + "\n\n"
+	s += subtitleStyle.Render("n - z:") + "\n"
+	s += blockfont.RenderText("nopqrstuvwxyz") + "\n"
+
+	return s
+}
+
+func (m model) viewUppercase() string {
+	s := titleStyle.Width(m.width).Render("Uppercase Alphabet")
+	s += "\n\n"
+
+	s += subtitleStyle.Render("A - M:") + "\n"
+	s += blockfont.RenderText("ABCDEFGHIJKLM") + "\n\n"
+
+	s += subtitleStyle.Render("N - Z:") + "\n"
+	s += blockfont.RenderText("NOPQRSTUVWXYZ") + "\n"
+
+	return s
+}
+
+func (m model) viewBasicRender() string {
+	s := titleStyle.Width(m.width).Render("Mixed Characters")
+	s += "\n\n"
+
+	// Show mixed case
+	s += subtitleStyle.Render("Mixed case:") + "\n"
+	s += blockfont.RenderText("Hello World") + "\n\n"
 
 	// Show numbers
 	s += subtitleStyle.Render("Numbers:") + "\n"
-	s += blockfont.RenderText("012345") + "\n\n"
+	s += blockfont.RenderText("0123456789") + "\n\n"
 
 	// Show punctuation
 	s += subtitleStyle.Render("Punctuation:") + "\n"
-	s += blockfont.RenderText("!?.,;:") + "\n"
+	s += blockfont.RenderText("!?.,;:-'\"") + "\n"
 
 	return s
 }

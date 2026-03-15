@@ -177,7 +177,7 @@
             pname = "blockfont";
             inherit version;
             src = ./.;
-            vendorHash = null;
+            vendorHash = "sha256-BmBUx6mmVSxSgU1X4fQa4Jz+HjU+9k3PfOCRSuqKY08=";
 
             meta = with pkgs.lib; {
               description = "Unicode block letter rendering for terminal applications";
@@ -192,7 +192,7 @@
             pname = "blockfont-demo";
             inherit version;
             src = ./.;
-            vendorHash = null;
+            vendorHash = "sha256-BmBUx6mmVSxSgU1X4fQa4Jz+HjU+9k3PfOCRSuqKY08=";
             subPackages = [ "examples/demo" ];
           };
 

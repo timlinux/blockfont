@@ -21,66 +21,54 @@ vim.api.nvim_create_user_command('BlockfontDocsOpen', '!make docs-open', {})
 vim.api.nvim_create_user_command('BlockfontDemoRecord', '!nix run .#demo-record', {})
 vim.api.nvim_create_user_command('BlockfontDemoPlay', '!nix run .#demo-play', {})
 
--- Which-key integration for project keybindings
+-- Which-key integration for project keybindings (new spec format)
 local ok, wk = pcall(require, "which-key")
 if ok then
-  wk.register({
-    p = {
-      name = "Project (blockfont)",
-      -- Build & Run
-      b = { "<cmd>!make build<cr>", "Build library" },
-      d = { "<cmd>!make demo<cr>", "Run demo application" },
-      t = { "<cmd>!make test<cr>", "Run tests" },
-      T = { "<cmd>!make test-coverage<cr>", "Run tests with coverage" },
+  wk.add({
+    { "<leader>p", group = "Project (blockfont)" },
 
-      -- Examples
-      e = {
-        name = "Examples",
-        s = { "<cmd>!make run-simple<cr>", "Run simple example" },
-        a = { "<cmd>!make run-animated<cr>", "Run animated example" },
-        e = { "<cmd>!make run-editor<cr>", "Run editor example" },
-      },
+    -- Build & Run
+    { "<leader>pb", "<cmd>!make build<cr>", desc = "Build library" },
+    { "<leader>pd", "<cmd>!make demo<cr>", desc = "Run demo application" },
+    { "<leader>pt", "<cmd>!make test<cr>", desc = "Run tests" },
+    { "<leader>pT", "<cmd>!make test-coverage<cr>", desc = "Run tests with coverage" },
 
-      -- Code Quality
-      f = { "<cmd>!make fmt<cr>", "Format code" },
-      l = { "<cmd>!make lint<cr>", "Lint code" },
+    -- Examples
+    { "<leader>pe", group = "Examples" },
+    { "<leader>pes", "<cmd>!make run-simple<cr>", desc = "Run simple example" },
+    { "<leader>pea", "<cmd>!make run-animated<cr>", desc = "Run animated example" },
+    { "<leader>pee", "<cmd>!make run-editor<cr>", desc = "Run editor example" },
 
-      -- Documentation (MkDocs)
-      D = {
-        name = "Documentation",
-        d = { "<cmd>!make docs-dev &<cr>", "Start MkDocs dev server" },
-        b = { "<cmd>!make docs-build<cr>", "Build documentation" },
-        c = { "<cmd>!make docs-clean<cr>", "Clean documentation" },
-        o = { "<cmd>!make docs-open<cr>", "Open docs in browser" },
-      },
+    -- Code Quality
+    { "<leader>pf", "<cmd>!make fmt<cr>", desc = "Format code" },
+    { "<leader>pl", "<cmd>!make lint<cr>", desc = "Lint code" },
 
-      -- Demo Recording (asciinema)
-      r = {
-        name = "Recording",
-        r = { "<cmd>terminal nix run .#demo-record<cr>", "Record demo" },
-        p = { "<cmd>terminal nix run .#demo-play<cr>", "Play demo" },
-      },
+    -- Documentation (MkDocs)
+    { "<leader>pD", group = "Documentation" },
+    { "<leader>pDd", "<cmd>!make docs-dev &<cr>", desc = "Start MkDocs dev server" },
+    { "<leader>pDb", "<cmd>!make docs-build<cr>", desc = "Build documentation" },
+    { "<leader>pDc", "<cmd>!make docs-clean<cr>", desc = "Clean documentation" },
+    { "<leader>pDo", "<cmd>!make docs-open<cr>", desc = "Open docs in browser" },
 
-      -- Release
-      R = { "<cmd>terminal nix run .#release<cr>", "Release new version" },
+    -- Demo Recording (asciinema)
+    { "<leader>pr", group = "Recording" },
+    { "<leader>prr", "<cmd>terminal nix run .#demo-record<cr>", desc = "Record demo" },
+    { "<leader>prp", "<cmd>terminal nix run .#demo-play<cr>", desc = "Play demo" },
 
-      -- Nix
-      n = {
-        name = "Nix",
-        b = { "<cmd>!nix build<cr>", "Nix build" },
-        r = { "<cmd>!nix run<cr>", "Nix run (demo)" },
-        d = { "<cmd>!nix run .#docs-serve<cr>", "Nix docs serve" },
-        t = { "<cmd>!nix run .#test<cr>", "Nix test" },
-      },
+    -- Release
+    { "<leader>pR", "<cmd>terminal nix run .#release<cr>", desc = "Release new version" },
 
-      -- Version
-      v = { "<cmd>!make version<cr>", "Show version info" },
+    -- Nix
+    { "<leader>pn", group = "Nix" },
+    { "<leader>pnb", "<cmd>!nix build<cr>", desc = "Nix build" },
+    { "<leader>pnr", "<cmd>!nix run<cr>", desc = "Nix run (demo)" },
+    { "<leader>pnd", "<cmd>!nix run .#docs-serve<cr>", desc = "Nix docs serve" },
+    { "<leader>pnt", "<cmd>!nix run .#test<cr>", desc = "Nix test" },
 
-      -- Dependencies
-      u = { "<cmd>!make deps<cr>", "Update dependencies (go mod tidy)" },
-      V = { "<cmd>!make vendor<cr>", "Vendor dependencies" },
-    },
-  }, { prefix = "<leader>" })
+    -- Version & Dependencies
+    { "<leader>pv", "<cmd>!make version<cr>", desc = "Show version info" },
+    { "<leader>pu", "<cmd>!make deps<cr>", desc = "Update dependencies (go mod tidy)" },
+  })
 end
 
 -- Autocommands for this project

@@ -5,11 +5,12 @@ Unicode block letter rendering for terminal applications.
 ![blockfont demo](demo/blockfont-demo.gif)
 
 ```
-██████ ██     ◢████◣ ◢████◣ ██ ◢█◤ ██████ ◢████◣ ██◣ ██ ◥█  █◤
-██  ██ ██     ██  ██ ██  ██ ██◢█◤  ██     ██  ██ ███◣██  ◥██◤
-██████ ██     ██  ██ ██     ███◣   ████   ██  ██ ██◥███   ██
-██  ██ ██     ██  ██ ██  ◢█ ██◥█◣  ██     ██  ██ ██ ◥██   ██
-██████ ██████ ◥████◤ ◥████◤ ██ ◥█◣ ██     ◥████◤ ██  ██   ██
+                                                     ██     ████                 ██      ◢███                  ██
+                                                     ██       ██                 ██ ◢█◤  ██                    ██
+                                                     █████◣   ██   ◢████◣ ◢████◣ ███◤   ████   ◢████◣ █████◣ ██████
+                                                     ██  ◢█   ██   ██  ██ ██     ██◥█◣   ██    ██  ██ ██  ██   ██
+                                                     █████◤ ██████ ◥████◤ ◥████◤ ██  ◥█  ██    ◥████◤ ██  ██   ◥███
+
 ```
 
 ## Features
@@ -124,8 +125,10 @@ make demo
 nix run
 ```
 
-The demo includes 8 screens showcasing:
-- Basic character rendering
+The demo includes 10 screens showcasing:
+- Full lowercase alphabet
+- Full uppercase alphabet
+- Mixed characters and numbers
 - Character highlighting
 - Vim-style editing
 - Spring animations
@@ -234,6 +237,18 @@ Full documentation is available at the [documentation site](https://timlinux.git
 - [Vim Editing](https://timlinux.github.io/blockfont/user/vim-editing/)
 - [Animations](https://timlinux.github.io/blockfont/user/animations/)
 - [API Reference](https://timlinux.github.io/blockfont/developer/api/)
+
+## Used In The Wild
+
+Projects using blockfont:
+
+| Project | Description |
+|---------|-------------|
+| [Macaco](https://github.com/timlinux/macaco) | A terminal typing tutor with block letter display |
+| [Cheetah](https://github.com/timlinux/cheetah) | Speed typing game with animated block fonts |
+| [Baboon](https://github.com/timlinux/baboon) | Terminal-based text editor with block letter headers |
+
+*Using blockfont in your project? Open a PR to add it here!*
 
 ## Contributing
 
