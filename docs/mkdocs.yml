@@ -1,5 +1,5 @@
 site_name: blockfont
-site_description: Unicode block letter rendering for terminal applications
+site_description: Block letter rendering for terminal applications using ASCII block characters
 site_author: Tim Sutton / Kartoza
 site_url: https://timlinux.github.io/blockfont
 

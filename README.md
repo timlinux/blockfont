@@ -1,6 +1,6 @@
 # blockfont
 
-Unicode block letter rendering for terminal applications.
+Block letter rendering for terminal applications using ASCII block characters.
 
 ![blockfont demo](demo/blockfont-demo.gif)
 
@@ -15,7 +15,7 @@ Unicode block letter rendering for terminal applications.
 
 ## Features
 
-- **Block Letter Rendering**: Convert text to beautiful Unicode block letters using `█ ◢ ◣ ◤ ◥`
+- **Block Letter Rendering**: Convert text to beautiful block letters using ASCII block characters `█ ◢ ◣ ◤ ◥`
 - **Full Character Set**: Lowercase, uppercase, numbers, and common punctuation
 - **Vim-Style Editing**: Full vim buffer with normal/insert modes and common operations
 - **Character Highlighting**: Color individual characters for typing games, diffs, etc.

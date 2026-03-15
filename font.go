@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Tim Sutton / Kartoza
 // SPDX-License-Identifier: MIT
 
-// Package blockfont provides Unicode block letter rendering for terminal applications.
+// Package blockfont provides block letter rendering for terminal applications using ASCII block characters.
 // It includes high-level widgets for charmbracelet/bubbletea integration,
 // vim-style text editing, animations, and comprehensive styling support.
 package blockfont

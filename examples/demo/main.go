@@ -44,15 +44,35 @@ var screenNames = []string{
 	"Credits",
 }
 
+// Kartoza brand colors
+var (
+	kartozaOrange = lipgloss.Color("#FF6B35")
+	kartozaGold   = lipgloss.Color("#FFB347")
+)
+
 // Styles
 var (
+	headerStyle = lipgloss.NewStyle().
+			Foreground(kartozaOrange).
+			Bold(true).
+			Align(lipgloss.Center)
+
+	straplineStyle = lipgloss.NewStyle().
+			Foreground(kartozaGold).
+			Italic(true).
+			Align(lipgloss.Center)
+
+	statusStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#888888")).
+			Align(lipgloss.Center)
+
 	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF6B35")).
+			Foreground(kartozaOrange).
 			Bold(true).
 			Align(lipgloss.Center)
 
 	subtitleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFB347")).
+			Foreground(kartozaGold).
 			Italic(true)
 
 	helpStyle = lipgloss.NewStyle().
@@ -60,12 +80,61 @@ var (
 
 	boxStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("#FF6B35")).
+			BorderForeground(kartozaOrange).
 			Padding(1, 2)
 
-	highlightStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFB347")).
-			Bold(true)
+	footerStyle = lipgloss.NewStyle().
+			Foreground(kartozaGold).
+			Bold(true).
+			Align(lipgloss.Center)
+
+	warningStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FFD700")).
+			Bold(true).
+			Align(lipgloss.Center)
+)
+
+// Popular color scheme themes
+var (
+	// Catppuccin Mocha
+	CatppuccinTheme = blockfont.Theme{
+		Correct:   "\033[38;2;166;227;161m", // Green
+		Incorrect: "\033[38;2;243;139;168m", // Red
+		Cursor:    "\033[38;2;137;180;250m", // Blue
+		Pending:   "\033[38;2;108;112;134m", // Overlay0
+	}
+
+	// Dracula
+	DraculaTheme = blockfont.Theme{
+		Correct:   "\033[38;2;80;250;123m",  // Green
+		Incorrect: "\033[38;2;255;85;85m",   // Red
+		Cursor:    "\033[38;2;139;233;253m", // Cyan
+		Pending:   "\033[38;2;98;114;164m",  // Comment
+	}
+
+	// Nord
+	NordTheme = blockfont.Theme{
+		Correct:   "\033[38;2;163;190;140m", // Green
+		Incorrect: "\033[38;2;191;97;106m",  // Red
+		Cursor:    "\033[38;2;136;192;208m", // Frost
+		Pending:   "\033[38;2;76;86;106m",   // Polar Night
+	}
+
+	// Gruvbox
+	GruvboxTheme = blockfont.Theme{
+		Correct:   "\033[38;2;184;187;38m",  // Green
+		Incorrect: "\033[38;2;251;73;52m",   // Red
+		Cursor:    "\033[38;2;131;165;152m", // Aqua
+		Pending:   "\033[38;2;146;131;116m", // Gray
+	}
+
+	// Tokyo Night
+	TokyoNightTheme = blockfont.Theme{
+		Correct:   "\033[38;2;158;206;106m", // Green
+		Incorrect: "\033[38;2;247;118;142m", // Red
+		Cursor:    "\033[38;2;125;207;255m", // Cyan
+		Pending:   "\033[38;2;86;95;137m",   // Comment
+	}
 )
 
 type model struct {
@@ -85,6 +154,9 @@ type model struct {
 	carousel     *blockfont.WordCarouselAnimator
 	carouselWord int
 	words        []string
+
+	// Status message
+	statusMsg string
 }
 
 func initialModel() model {
@@ -108,6 +180,7 @@ func initialModel() model {
 		carousel:      blockfont.NewWordCarouselAnimator(),
 		carouselWord:  0,
 		words:         []string{"block", "font", "demo", "cool"},
+		statusMsg:     "Welcome to blockfont demo",
 	}
 }
 
@@ -123,6 +196,10 @@ func (m model) Init() tea.Cmd {
 	return tickCmd()
 }
 
+func (m model) isVimInsertMode() bool {
+	return m.currentScreen == screenVimEditing && m.vimWidget.Mode() != blockfont.ModeNormal
+}
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
@@ -132,6 +209,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 
 	case tea.KeyMsg:
+		// If in vim insert mode, only handle escape and pass everything else to vim
+		if m.isVimInsertMode() {
+			// Let vim widget handle the input
+			w, cmd := m.vimWidget.Update(msg)
+			m.vimWidget = w
+			if cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+			return m, tea.Batch(cmds...)
+		}
+
+		// Normal navigation mode
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
@@ -139,22 +228,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "left", "h":
 			if m.currentScreen > 0 {
 				m.currentScreen--
+				m.statusMsg = fmt.Sprintf("Screen: %s", screenNames[m.currentScreen])
 			}
 
 		case "right", "l":
 			if m.currentScreen < screenCredits {
 				m.currentScreen++
+				m.statusMsg = fmt.Sprintf("Screen: %s", screenNames[m.currentScreen])
 			}
 
 		case "1", "2", "3", "4", "5", "6", "7", "8", "9", "0":
 			var idx int
 			if msg.String() == "0" {
-				idx = 9
+				idx = 9 // 0 = screen 10 (Credits)
 			} else {
 				idx = int(msg.Runes[0] - '1')
 			}
 			if idx >= 0 && idx <= int(screenCredits) {
 				m.currentScreen = screen(idx)
+				m.statusMsg = fmt.Sprintf("Screen: %s", screenNames[m.currentScreen])
 			}
 
 		case " ", "enter":
@@ -162,6 +254,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.currentScreen == screenAnimations {
 				m.animator.TriggerTransition(blockfont.TransitionFadeIn)
 				m.animationDone = false
+				m.statusMsg = "Animation triggered"
 				cmds = append(cmds, tickCmd())
 			}
 
@@ -170,11 +263,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.currentScreen == screenAnimations {
 				m.carouselWord = (m.carouselWord + 1) % len(m.words)
 				m.carousel.TriggerTransition()
+				m.statusMsg = fmt.Sprintf("Word: %s", m.words[m.carouselWord])
 				cmds = append(cmds, tickCmd())
 			}
 		}
 
-		// Handle vim editing on vim screen
+		// Handle vim editing on vim screen (normal mode keys)
 		if m.currentScreen == screenVimEditing {
 			w, cmd := m.vimWidget.Update(msg)
 			m.vimWidget = w
@@ -211,8 +305,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	var content string
+	// Calculate available height for content
+	headerHeight := 3  // title + strapline + status
+	footerHeight := 3  // nav + help + branding
+	contentHeight := m.height - headerHeight - footerHeight - 2 // -2 for spacing
+	if contentHeight < 10 {
+		contentHeight = 10
+	}
 
+	// Build header (always at top, centered)
+	header := m.buildHeader()
+
+	// Build content
+	var content string
 	switch m.currentScreen {
 	case screenWelcome:
 		content = m.viewWelcome()
@@ -236,28 +341,104 @@ func (m model) View() string {
 		content = m.viewCredits()
 	}
 
-	// Build navigation
+	// Center content both horizontally and vertically
+	content = m.centerContent(content, contentHeight)
+
+	// Build footer (always at bottom, centered)
+	footer := m.buildFooter()
+
+	return fmt.Sprintf("%s\n%s\n%s", header, content, footer)
+}
+
+// centerContent centers the content both horizontally and vertically within the available space
+func (m model) centerContent(content string, availableHeight int) string {
+	lines := strings.Split(content, "\n")
+
+	// Center each line horizontally
+	var centeredLines []string
+	for _, line := range lines {
+		centered := lipgloss.PlaceHorizontal(m.width, lipgloss.Center, line)
+		centeredLines = append(centeredLines, centered)
+	}
+
+	// Calculate vertical padding
+	contentHeight := len(centeredLines)
+	if contentHeight < availableHeight {
+		topPadding := (availableHeight - contentHeight) / 2
+		bottomPadding := availableHeight - contentHeight - topPadding
+
+		// Add top padding
+		paddedLines := make([]string, 0, availableHeight)
+		for range topPadding {
+			paddedLines = append(paddedLines, "")
+		}
+
+		// Add content
+		paddedLines = append(paddedLines, centeredLines...)
+
+		// Add bottom padding
+		for range bottomPadding {
+			paddedLines = append(paddedLines, "")
+		}
+
+		return strings.Join(paddedLines, "\n")
+	}
+
+	return strings.Join(centeredLines, "\n")
+}
+
+func (m model) buildHeader() string {
+	// Title
+	title := headerStyle.Width(m.width).Render("blockfont")
+
+	// Strapline
+	strapline := straplineStyle.Width(m.width).Render("Block letter rendering using ASCII block characters")
+
+	// Status
+	status := statusStyle.Width(m.width).Render(m.statusMsg)
+
+	return fmt.Sprintf("%s\n%s\n%s", title, strapline, status)
+}
+
+func (m model) buildFooter() string {
+	// Navigation tabs
 	nav := m.buildNavigation()
+	nav = lipgloss.PlaceHorizontal(m.width, lipgloss.Center, nav)
 
-	// Build help footer
-	help := helpStyle.Render("[←/→] Navigate • [1-9,0] Jump to screen • [q] Quit")
+	// Help text
+	var helpText string
+	if m.isVimInsertMode() {
+		helpText = warningStyle.Width(m.width).Render("-- INSERT MODE -- Press [Esc] to return to navigation")
+	} else {
+		helpText = helpStyle.Width(m.width).Render("[←/→] Navigate • [1-9,0] Jump • [q] Quit")
+	}
 
-	return fmt.Sprintf("%s\n\n%s\n\n%s", nav, content, help)
+	// Kartoza branding
+	branding := footerStyle.Width(m.width).Render("Made with ❤️ by Kartoza | https://kartoza.com")
+
+	return fmt.Sprintf("\n%s\n%s\n%s", nav, helpText, branding)
 }
 
 func (m model) buildNavigation() string {
 	var tabs []string
 	for i, name := range screenNames {
 		style := lipgloss.NewStyle().Padding(0, 1)
+
+		// Display key: 1-9 for first 9, 0 for 10th
+		key := fmt.Sprintf("%d", i+1)
+		if i == 9 {
+			key = "0"
+		}
+
 		if screen(i) == m.currentScreen {
 			style = style.
 				Foreground(lipgloss.Color("#000000")).
-				Background(lipgloss.Color("#FF6B35")).
+				Background(kartozaOrange).
 				Bold(true)
 		} else {
 			style = style.Foreground(lipgloss.Color("#888888"))
 		}
-		tabs = append(tabs, style.Render(fmt.Sprintf("%d:%s", i+1, name)))
+		tabs = append(tabs, style.Render(fmt.Sprintf("%s:%s", key, name)))
 	}
 	return lipgloss.JoinHorizontal(lipgloss.Top, tabs...)
 }
@@ -266,16 +447,11 @@ func (m model) viewWelcome() string {
 	// Render "blockfont" in block letters
 	title := blockfont.RenderText("blockfont")
 
-	// Center it
-	lines := strings.Split(title, "\n")
-	centered := blockfont.CenterLines(lines, m.width)
-	title = strings.Join(centered, "\n")
-
-	subtitle := subtitleStyle.Render("Unicode block letter rendering for terminal applications")
-	subtitle = lipgloss.PlaceHorizontal(m.width, lipgloss.Center, subtitle)
-
 	features := []string{
-		"• Full ASCII character set (a-z, A-Z, 0-9, punctuation)",
+		"• Lowercase letters (a-z)",
+		"• Uppercase letters (A-Z)",
+		"• Numbers (0-9)",
+		"• Common punctuation (. , ; : ! ? - ' \" etc.)",
 		"• Vim-style text editing with cursor support",
 		"• Character-level highlighting for typing games",
 		"• Spring-based animations with harmonica",
@@ -285,39 +461,38 @@ func (m model) viewWelcome() string {
 	}
 
 	featureBox := boxStyle.Render(strings.Join(features, "\n"))
-	featureBox = lipgloss.PlaceHorizontal(m.width, lipgloss.Center, featureBox)
 
-	return fmt.Sprintf("%s\n\n%s\n\n%s", title, subtitle, featureBox)
+	return fmt.Sprintf("%s\n\n%s", title, featureBox)
 }
 
 func (m model) viewLowercase() string {
-	s := titleStyle.Width(m.width).Render("Lowercase Alphabet")
+	s := titleStyle.Render("Lowercase Alphabet")
 	s += "\n\n"
 
 	s += subtitleStyle.Render("a - m:") + "\n"
 	s += blockfont.RenderText("abcdefghijklm") + "\n\n"
 
 	s += subtitleStyle.Render("n - z:") + "\n"
-	s += blockfont.RenderText("nopqrstuvwxyz") + "\n"
+	s += blockfont.RenderText("nopqrstuvwxyz")
 
 	return s
 }
 
 func (m model) viewUppercase() string {
-	s := titleStyle.Width(m.width).Render("Uppercase Alphabet")
+	s := titleStyle.Render("Uppercase Alphabet")
 	s += "\n\n"
 
 	s += subtitleStyle.Render("A - M:") + "\n"
 	s += blockfont.RenderText("ABCDEFGHIJKLM") + "\n\n"
 
 	s += subtitleStyle.Render("N - Z:") + "\n"
-	s += blockfont.RenderText("NOPQRSTUVWXYZ") + "\n"
+	s += blockfont.RenderText("NOPQRSTUVWXYZ")
 
 	return s
 }
 
 func (m model) viewBasicRender() string {
-	s := titleStyle.Width(m.width).Render("Mixed Characters")
+	s := titleStyle.Render("Mixed Characters")
 	s += "\n\n"
 
 	// Show mixed case
@@ -330,13 +505,13 @@ func (m model) viewBasicRender() string {
 
 	// Show punctuation
 	s += subtitleStyle.Render("Punctuation:") + "\n"
-	s += blockfont.RenderText("!?.,;:-'\"") + "\n"
+	s += blockfont.RenderText("!?.,;:-'\"")
 
 	return s
 }
 
 func (m model) viewHighlights() string {
-	s := titleStyle.Width(m.width).Render("Character Highlights")
+	s := titleStyle.Render("Character Highlights")
 	s += "\n\n"
 	s += subtitleStyle.Render("Perfect for typing games and diffs:") + "\n\n"
 
@@ -367,16 +542,25 @@ func (m model) viewHighlights() string {
 }
 
 func (m model) viewVimEditing() string {
-	s := titleStyle.Width(m.width).Render("Vim-Style Editing")
+	s := titleStyle.Render("Vim-Style Editing")
 	s += "\n\n"
 
 	// Mode indicator
 	mode := m.vimWidget.Mode().String()
-	modeStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#000000")).
-		Background(lipgloss.Color("#FFB347")).
-		Bold(true).
-		Padding(0, 1)
+	var modeStyle lipgloss.Style
+	if m.vimWidget.Mode() == blockfont.ModeNormal {
+		modeStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#000000")).
+			Background(lipgloss.Color("#98c379")).
+			Bold(true).
+			Padding(0, 1)
+	} else {
+		modeStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#000000")).
+			Background(lipgloss.Color("#e5c07b")).
+			Bold(true).
+			Padding(0, 1)
+	}
 	s += modeStyle.Render(mode) + "\n\n"
 
 	// The editor widget
@@ -384,16 +568,16 @@ func (m model) viewVimEditing() string {
 
 	// Help based on mode
 	if m.vimWidget.Mode() == blockfont.ModeNormal {
-		s += helpStyle.Render("[i] Insert • [a] Append • [x] Delete • [h/j/k/l] Move • [0/$] Line start/end")
+		s += helpStyle.Render("[i] Insert • [a] Append • [x] Delete • [h/l] Move • [0/$] Start/End")
 	} else {
-		s += helpStyle.Render("[Esc] Normal mode • Type to insert text")
+		s += warningStyle.Render("Type to insert • [Esc] Return to normal mode")
 	}
 
 	return s
 }
 
 func (m model) viewAnimations() string {
-	s := titleStyle.Width(m.width).Render("Spring Animations")
+	s := titleStyle.Render("Spring Animations")
 	s += "\n\n"
 
 	// Animated text with fade
@@ -433,14 +617,14 @@ func (m model) viewAnimations() string {
 	nextOpacity := m.carousel.GetNextOpacity()
 	if nextOpacity > 0.2 {
 		nextText := blockfont.WrapWithColor(blockfont.RenderText(m.words[nextIdx]), blockfont.ANSIDim)
-		s += nextText + "\n"
+		s += nextText
 	}
 
 	return s
 }
 
 func (m model) viewWordWrap() string {
-	s := titleStyle.Width(m.width).Render("Word Wrapping")
+	s := titleStyle.Render("Word Wrapping")
 	s += "\n\n"
 	s += subtitleStyle.Render("Text wraps at word boundaries with cursor tracking:") + "\n\n"
 
@@ -453,43 +637,36 @@ func (m model) viewWordWrap() string {
 }
 
 func (m model) viewThemes() string {
-	s := titleStyle.Width(m.width).Render("Theme Support")
+	s := titleStyle.Render("Popular Color Schemes")
 	s += "\n\n"
 
-	// Default theme
-	s += subtitleStyle.Render("Default Theme:") + "\n"
-	defaultHighlights := []blockfont.CharHighlight{
+	// Demo highlights for all themes
+	demoHighlights := []blockfont.CharHighlight{
 		blockfont.HighlightCorrect,
 		blockfont.HighlightIncorrect,
 		blockfont.HighlightPending,
 	}
-	lines := blockfont.RenderWithCursor("abc", -1, defaultHighlights, false, 0, blockfont.DefaultTheme)
-	s += strings.Join(lines, "\n") + "\n\n"
 
-	// Kartoza theme
-	s += subtitleStyle.Render("Kartoza Theme:") + "\n"
-	lines = blockfont.RenderWithCursor("abc", -1, defaultHighlights, false, 0, blockfont.KartozaTheme)
-	s += strings.Join(lines, "\n") + "\n\n"
-
-	// Color options
-	s += subtitleStyle.Render("ANSI Color Constants:") + "\n"
-	colors := []struct {
+	themes := []struct {
 		name  string
-		color string
+		theme blockfont.Theme
 	}{
-		{"Red", blockfont.ANSIRed},
-		{"Green", blockfont.ANSIGreen},
-		{"Orange", blockfont.ANSIOrange},
-		{"Blue", blockfont.ANSIBlue},
-		{"Cyan", blockfont.ANSICyan},
-		{"Magenta", blockfont.ANSIMagenta},
+		{"Kartoza (Default)", blockfont.KartozaTheme},
+		{"Catppuccin Mocha", CatppuccinTheme},
+		{"Dracula", DraculaTheme},
+		{"Nord", NordTheme},
+		{"Gruvbox", GruvboxTheme},
+		{"Tokyo Night", TokyoNightTheme},
 	}
 
-	var colorDemo []string
-	for _, c := range colors {
-		colorDemo = append(colorDemo, c.color+"██"+blockfont.ANSIReset+" "+c.name)
+	for i, t := range themes {
+		s += subtitleStyle.Render(t.name+":") + "\n"
+		lines := blockfont.RenderWithCursor("abc", 1, demoHighlights, false, 0, t.theme)
+		s += strings.Join(lines, "\n")
+		if i < len(themes)-1 {
+			s += "\n\n"
+		}
 	}
-	s += boxStyle.Render(strings.Join(colorDemo, "  "))
 
 	return s
 }
@@ -497,15 +674,16 @@ func (m model) viewThemes() string {
 func (m model) viewCredits() string {
 	// Render "thanks" in block letters
 	title := blockfont.RenderText("thanks")
-	lines := strings.Split(title, "\n")
-	centered := blockfont.CenterLines(lines, m.width)
-	title = strings.Join(centered, "\n")
 
 	credits := []string{
 		"blockfont v0.1.0",
 		"",
-		"A Unicode block letter rendering library",
+		"A block letter rendering library",
 		"for terminal applications.",
+		"",
+		"Created by:",
+		"  Tim Sutton (@timlinux)",
+		"  https://github.com/timlinux",
 		"",
 		"Built with:",
 		"  • Go",
@@ -517,12 +695,8 @@ func (m model) viewCredits() string {
 	}
 
 	creditsBox := boxStyle.Render(strings.Join(credits, "\n"))
-	creditsBox = lipgloss.PlaceHorizontal(m.width, lipgloss.Center, creditsBox)
 
-	footer := highlightStyle.Render("Made with ❤️ by Kartoza")
-	footer = lipgloss.PlaceHorizontal(m.width, lipgloss.Center, footer)
-
-	return fmt.Sprintf("%s\n\n%s\n\n%s", title, creditsBox, footer)
+	return fmt.Sprintf("%s\n\n%s", title, creditsBox)
 }
 
 func main() {

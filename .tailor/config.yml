@@ -2,7 +2,7 @@
 license: MIT
 
 repository:
-  description: Unicode block letter rendering for terminal applications
+  description: Block letter rendering for terminal applications using ASCII block characters
   has_wiki: true
   has_discussions: false
   has_projects: true

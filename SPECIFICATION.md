@@ -2,7 +2,7 @@
 
 ## Overview
 
-blockfont is a Go library for rendering Unicode block letters in terminal applications. It provides a comprehensive solution for displaying large, stylized text with support for vim-style editing, animations, and integration with the charmbracelet ecosystem.
+blockfont is a Go library for rendering block letters in terminal applications using ASCII block characters. It provides a comprehensive solution for displaying large, stylized text with support for vim-style editing, animations, and integration with the charmbracelet ecosystem.
 
 ## Architecture
 
@@ -33,7 +33,7 @@ blockfont is a Go library for rendering Unicode block letters in terminal applic
 
 **Acceptance Criteria:**
 - Can call `RenderText("hello")` and get a multi-line string
-- Output contains Unicode block characters (█, ◢, ◣, ◤, ◥)
+- Output contains ASCII block characters (█, ◢, ◣, ◤, ◥)
 - All lowercase and uppercase letters are supported
 - Numbers and common punctuation are supported
 
@@ -85,7 +85,7 @@ blockfont is a Go library for rendering Unicode block letters in terminal applic
 
 ### FR-001: Font Data
 - Characters defined as 6-line arrays of strings
-- Uses Unicode block elements: █ (full block), ◢◣◤◥ (triangles)
+- Uses ASCII block elements: █ (full block), ◢◣◤◥ (triangles)
 - Variable width characters
 - Fallback to space for undefined characters
 

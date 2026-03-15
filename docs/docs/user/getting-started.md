@@ -13,7 +13,7 @@ go get github.com/timlinux/blockfont
 ## Requirements
 
 - Go 1.21 or later
-- Terminal with Unicode support
+- Terminal with block character support
 
 ### Optional Dependencies
 
@@ -67,9 +67,9 @@ blockfont supports a comprehensive character set:
 | Punctuation | `! @ # $ % ^ & * ( ) - _ = + [ ] { } \| ; : ' " , . < > / ? ~` |
 | Special | `space` |
 
-## Unicode Block Elements
+## ASCII Block Elements
 
-blockfont uses these Unicode characters:
+blockfont uses these block characters:
 
 | Character | Name | Code Point |
 |-----------|------|------------|

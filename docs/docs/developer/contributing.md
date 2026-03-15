@@ -54,7 +54,7 @@ To add a new character to the font:
 1. Edit `font.go`
 2. Add entry to `BlockLetters` map
 3. Character must be 6 lines tall
-4. Use Unicode blocks: █ ◢ ◣ ◤ ◥
+4. Use ASCII block characters: █ ◢ ◣ ◤ ◥
 
 Example:
 ```go

@@ -2,7 +2,7 @@
 
 ## Overview
 
-blockfont is organized as a single Go package providing Unicode block letter rendering for terminal applications.
+blockfont is organized as a single Go package providing block letter rendering for terminal applications using ASCII block characters.
 
 ## Package: `blockfont`
 

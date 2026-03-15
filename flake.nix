@@ -1,5 +1,5 @@
 {
-  description = "blockfont - Unicode block letter rendering for terminal applications";
+  description = "blockfont - Block letter rendering for terminal applications";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -180,7 +180,7 @@
             vendorHash = "sha256-BmBUx6mmVSxSgU1X4fQa4Jz+HjU+9k3PfOCRSuqKY08=";
 
             meta = with pkgs.lib; {
-              description = "Unicode block letter rendering for terminal applications";
+              description = "Block letter rendering for terminal applications";
               homepage = "https://github.com/timlinux/blockfont";
               license = licenses.mit;
               maintainers = [ ];

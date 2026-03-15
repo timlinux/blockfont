@@ -100,7 +100,7 @@ pre-commit:
 
 # Help
 help:
-	@echo "blockfont - Unicode block letter rendering library"
+	@echo "blockfont - Block letter rendering using ASCII block characters"
 	@echo ""
 	@echo "Build targets:"
 	@echo "  make build         - Build/verify the library"
