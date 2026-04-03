@@ -10,7 +10,7 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        version = "0.1.0";
+        version = "0.1.1";
 
         # Script to record demo with asciinema
         demo-record = pkgs.writeShellScriptBin "blockfont-demo-record" ''

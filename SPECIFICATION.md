@@ -198,6 +198,10 @@ func (a *Animator) Update() bool
 
 ## Version History
 
+### v0.1.1
+- Fixed rendering of `2` and `*` characters
+- Minor code tidying
+
 ### v0.1.0 (Initial Release)
 - Core font rendering
 - Widget with bubbletea integration
