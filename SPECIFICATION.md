@@ -7,21 +7,21 @@ blockfont is a Go library for rendering block letters in terminal applications u
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         blockfont                               │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
-│  │  Widget  │──│  Buffer  │  │ Animator │  │  Style   │        │
-│  │(tea.Model)│  │  (vim)  │  │ (spring) │  │ (lipgloss)│       │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘        │
-│       │             │             │             │               │
-│       └─────────────┴─────────────┴─────────────┘               │
-│                           │                                     │
-│  ┌──────────┐  ┌──────────┴──────────┐  ┌──────────┐           │
-│  │   Font   │──│       Layout        │──│   ANSI   │           │
-│  │(BlockLetters)│  (align/wrap)     │  │(utilities)│           │
-│  └──────────┘  └────────────────────┘  └──────────┘           │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                           blockfont                                  │
+├─────────────────────────────────────────────────────────────────────┤
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐            │
+│  │  Widget  │──│  Buffer  │  │ Animator │  │  Style   │            │
+│  │(tea.Model)│  │  (vim)  │  │ (spring) │  │ (lipgloss)│           │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘            │
+│       │             │             │             │                   │
+│       └─────────────┴─────────────┴─────────────┘                   │
+│                           │                                         │
+│  ┌──────────┐  ┌──────────┴──────────┐  ┌──────────┐  ┌──────────┐ │
+│  │   Font   │──│       Layout        │──│   ANSI   │  │Character │ │
+│  │(BlockLetters)│  (align/wrap)     │  │(utilities)│  │ (sprites)│ │
+│  └──────────┘  └────────────────────┘  └──────────┘  └──────────┘ │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ## User Stories
@@ -81,6 +81,18 @@ blockfont is a Go library for rendering block letters in terminal applications u
 - Scale transitions
 - Spring-based physics for smooth motion
 
+### US-006: Character Sprites
+**As a** game developer
+**I want to** display animated character sprites
+**So that** I can create game characters using block elements
+
+**Acceptance Criteria:**
+- Character sprites are 12 lines tall (2x font height)
+- Multiple animation actions: idle, walk, run, duck, jump, wave
+- Keyframe animation system with configurable frame durations
+- Horizontal flip support for facing directions
+- Integration with color rendering
+
 ## Functional Requirements
 
 ### FR-001: Font Data
@@ -128,6 +140,19 @@ blockfont is a Go library for rendering block letters in terminal applications u
 - Scale animation (grow/shrink)
 - Configurable timing
 
+### FR-007: Character Sprites
+- Character sprites defined as 12-line arrays (2x font height)
+- Uses same ASCII block elements as font
+- Multiple animation actions with keyframes:
+  - Idle: 2 frames, subtle breathing animation
+  - Walk: 4 frames, walking cycle
+  - Run: 4 frames, faster running cycle
+  - Duck: 1 frame, crouching pose
+  - Jump: 3 frames (up, peak, down)
+  - Wave: 3 frames, greeting animation
+- Frame duration configurable per action
+- Horizontal flip swaps triangle characters for direction
+
 ## Technical Requirements
 
 ### TR-001: Dependencies
@@ -169,6 +194,7 @@ type Mode int               // ModeNormal, ModeInsert, ModeVisual, etc.
 type CharHighlight int      // HighlightNone, HighlightCorrect, etc.
 type CursorStyle int        // CursorBlock, CursorLine, CursorUnderline
 type TransitionType int     // TransitionSlideUp, TransitionFadeIn, etc.
+type AnimationAction int    // ActionIdle, ActionWalk, ActionRun, etc.
 ```
 
 ### Primary Interfaces
@@ -194,9 +220,31 @@ type Animator struct { ... }
 func NewAnimator() *Animator
 func (a *Animator) TriggerTransition(t TransitionType)
 func (a *Animator) Update() bool
+
+// CharacterSprite provides character animation data
+type CharacterSprite struct { ... }
+func NewCharacterSprite() *CharacterSprite
+func (cs *CharacterSprite) GetFrame(action AnimationAction, frameIndex int) *CharacterFrame
+func (cs *CharacterSprite) GetFrameCount(action AnimationAction) int
+
+// CharacterAnimator handles character animation state
+type CharacterAnimator struct { ... }
+func NewCharacterAnimator() *CharacterAnimator
+func (ca *CharacterAnimator) SetAction(action AnimationAction)
+func (ca *CharacterAnimator) SetFlipped(flipped bool)
+func (ca *CharacterAnimator) Update() bool
+func (ca *CharacterAnimator) Render() string
+func (ca *CharacterAnimator) RenderWithColor(color string) string
 ```
 
 ## Version History
+
+### v0.2.0
+- Added character sprite system with keyframe animations
+- Character sprites at 2x font size (12 lines tall)
+- Animation actions: idle, walk, run, duck, jump, wave
+- Horizontal flip support for facing directions
+- New demo screen for character animations
 
 ### v0.1.1
 - Fixed rendering of `2` and `*` characters

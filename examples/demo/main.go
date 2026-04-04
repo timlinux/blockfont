@@ -26,6 +26,7 @@ const (
 	screenHighlights
 	screenVimEditing
 	screenAnimations
+	screenCharacter
 	screenWordWrap
 	screenThemes
 	screenCredits
@@ -39,6 +40,7 @@ var screenNames = []string{
 	"Highlights",
 	"Vim",
 	"Animations",
+	"Character",
 	"Wrap",
 	"Themes",
 	"Credits",
@@ -155,6 +157,11 @@ type model struct {
 	carouselWord int
 	words        []string
 
+	// For character animation demo
+	characterAnimator *blockfont.CharacterAnimator
+	characterAction   blockfont.AnimationAction
+	characterFlipped  bool
+
 	// Status message
 	statusMsg string
 }
@@ -170,17 +177,20 @@ func initialModel() model {
 	vimWidget.Focus()
 
 	return model{
-		currentScreen: screenWelcome,
-		width:         80,
-		height:        24,
-		vimWidget:     vimWidget,
-		animator:      blockfont.NewAnimator(),
-		animatedText:  "fade",
-		animationDone: true,
-		carousel:      blockfont.NewWordCarouselAnimator(),
-		carouselWord:  0,
-		words:         []string{"block", "font", "demo", "cool"},
-		statusMsg:     "Welcome to blockfont demo",
+		currentScreen:     screenWelcome,
+		width:             80,
+		height:            24,
+		vimWidget:         vimWidget,
+		animator:          blockfont.NewAnimator(),
+		animatedText:      "fade",
+		animationDone:     true,
+		carousel:          blockfont.NewWordCarouselAnimator(),
+		carouselWord:      0,
+		words:             []string{"block", "font", "demo", "cool"},
+		characterAnimator: blockfont.NewCharacterAnimator(),
+		characterAction:   blockfont.ActionIdle,
+		characterFlipped:  false,
+		statusMsg:         "Welcome to blockfont demo",
 	}
 }
 
@@ -266,6 +276,45 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.statusMsg = fmt.Sprintf("Word: %s", m.words[m.carouselWord])
 				cmds = append(cmds, tickCmd())
 			}
+			// Next action in character screen
+			if m.currentScreen == screenCharacter {
+				actions := blockfont.AllActions()
+				for i, a := range actions {
+					if a == m.characterAction {
+						m.characterAction = actions[(i+1)%len(actions)]
+						break
+					}
+				}
+				m.characterAnimator.SetAction(m.characterAction)
+				m.statusMsg = fmt.Sprintf("Action: %s", blockfont.GetActionName(m.characterAction))
+			}
+
+		case "p":
+			// Previous action in character screen
+			if m.currentScreen == screenCharacter {
+				actions := blockfont.AllActions()
+				for i, a := range actions {
+					if a == m.characterAction {
+						idx := (i - 1 + len(actions)) % len(actions)
+						m.characterAction = actions[idx]
+						break
+					}
+				}
+				m.characterAnimator.SetAction(m.characterAction)
+				m.statusMsg = fmt.Sprintf("Action: %s", blockfont.GetActionName(m.characterAction))
+			}
+
+		case "f":
+			// Flip character direction
+			if m.currentScreen == screenCharacter {
+				m.characterFlipped = !m.characterFlipped
+				m.characterAnimator.SetFlipped(m.characterFlipped)
+				dir := "right"
+				if m.characterFlipped {
+					dir = "left"
+				}
+				m.statusMsg = fmt.Sprintf("Facing: %s", dir)
+			}
 		}
 
 		// Handle vim editing on vim screen (normal mode keys)
@@ -278,17 +327,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tickMsg:
+		// Always keep tick running for screens that need animation
+		cmds = append(cmds, tickCmd())
+
 		// Update animations
 		if m.currentScreen == screenAnimations {
 			if m.animator.Update() {
-				cmds = append(cmds, tickCmd())
+				// animation still running
 			} else {
 				m.animationDone = true
 			}
+			m.carousel.Update()
+		}
 
-			if m.carousel.Update() {
-				cmds = append(cmds, tickCmd())
-			}
+		// Update character animation
+		if m.currentScreen == screenCharacter {
+			m.characterAnimator.Update()
 		}
 
 	case blockfont.AnimationTickMsg:
@@ -333,6 +387,8 @@ func (m model) View() string {
 		content = m.viewVimEditing()
 	case screenAnimations:
 		content = m.viewAnimations()
+	case screenCharacter:
+		content = m.viewCharacter()
 	case screenWordWrap:
 		content = m.viewWordWrap()
 	case screenThemes:
@@ -619,6 +675,49 @@ func (m model) viewAnimations() string {
 		nextText := blockfont.WrapWithColor(blockfont.RenderText(m.words[nextIdx]), blockfont.ANSIDim)
 		s += nextText
 	}
+
+	return s
+}
+
+func (m model) viewCharacter() string {
+	s := titleStyle.Render("Character Animation")
+	s += "\n\n"
+	s += subtitleStyle.Render(fmt.Sprintf("Action: %s", blockfont.GetActionName(m.characterAction))) + "\n\n"
+
+	// Render the character
+	charColor := "\033[38;2;255;107;53m" // Kartoza orange
+	s += m.characterAnimator.RenderWithColor(charColor) + "\n\n"
+
+	// Action buttons
+	actions := blockfont.AllActions()
+	var actionButtons []string
+	for _, action := range actions {
+		name := blockfont.GetActionName(action)
+		style := lipgloss.NewStyle().Padding(0, 1)
+		if action == m.characterAction {
+			style = style.
+				Foreground(lipgloss.Color("#000000")).
+				Background(kartozaOrange).
+				Bold(true)
+		} else {
+			style = style.Foreground(lipgloss.Color("#888888"))
+		}
+		actionButtons = append(actionButtons, style.Render(name))
+	}
+	s += lipgloss.JoinHorizontal(lipgloss.Top, actionButtons...) + "\n\n"
+
+	// Direction indicator
+	dir := "→ Right"
+	if m.characterFlipped {
+		dir = "← Left"
+	}
+	dirStyle := lipgloss.NewStyle().
+		Foreground(kartozaGold).
+		Bold(true)
+	s += dirStyle.Render("Direction: "+dir) + "\n\n"
+
+	// Help text
+	s += helpStyle.Render("[N] Next action • [P] Previous action • [F] Flip direction")
 
 	return s
 }

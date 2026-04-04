@@ -19,6 +19,7 @@ blockfont is organized as a single Go package providing block letter rendering f
 | `layout.go` | Text alignment and layout utilities |
 | `style.go` | Styling, themes, and character highlighting |
 | `animation.go` | Spring-based animation system |
+| `character.go` | Character sprites with keyframe animations |
 | `ansi.go` | ANSI escape code utilities |
 
 ### Dependencies
@@ -102,6 +103,22 @@ Spring-based animation system.
 - `NewAnimator()` - Constructor
 - `WordCarouselAnimator` - Specialized animator for word carousels
 - `GetAnimationInterval()` - Get recommended tick interval
+
+### character.go
+Character sprites with keyframe animations.
+
+**Exports:**
+- `CharacterHeight` - Constant (12, 2x font height)
+- `CharacterWidth` - Constant (12)
+- `AnimationAction` - Action type enum (Idle, Walk, Run, Duck, Jump, Wave)
+- `CharacterFrame` - Single animation frame
+- `CharacterAnimation` - Animation with frames and timing
+- `CharacterSprite` - All animations for a character
+- `NewCharacterSprite()` - Constructor
+- `CharacterAnimator` - Animation state manager
+- `NewCharacterAnimator()` - Constructor
+- `AllActions()` - Get all available actions
+- `GetActionName()` - Get human-readable action name
 
 ### ansi.go
 ANSI escape code utilities.

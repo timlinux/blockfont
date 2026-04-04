@@ -302,6 +302,175 @@ func (m model) View() string {
 }
 ```
 
+## Character Sprites
+
+blockfont includes animated character sprites using the same block elements as the font. Characters are 12 lines tall (2x font height) and support multiple animation actions.
+
+### Creating a Character
+
+```go
+animator := blockfont.NewCharacterAnimator()
+```
+
+### Animation Actions
+
+| Action | Description | Frames |
+|--------|-------------|--------|
+| `ActionIdle` | Standing still with subtle movement | 2 |
+| `ActionWalk` | Walking cycle | 4 |
+| `ActionRun` | Running cycle (faster) | 4 |
+| `ActionDuck` | Crouching/ducking pose | 1 |
+| `ActionJump` | Jump up, peak, land | 3 |
+| `ActionWave` | Greeting/waving animation | 3 |
+
+### Setting the Action
+
+```go
+// Change to walking animation
+animator.SetAction(blockfont.ActionWalk)
+
+// Check current action
+action := animator.GetAction()
+name := blockfont.GetActionName(action)  // "Walk"
+```
+
+### Flipping Direction
+
+Characters can face left or right:
+
+```go
+// Face left
+animator.SetFlipped(true)
+
+// Face right (default)
+animator.SetFlipped(false)
+
+// Check direction
+if animator.IsFlipped() {
+    // Facing left
+}
+```
+
+### Animation Loop
+
+```go
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+    switch msg := msg.(type) {
+    case tickMsg:
+        m.characterAnimator.Update()
+        return m, tickCmd()
+    }
+    return m, nil
+}
+
+func (m model) View() string {
+    // Render with Kartoza orange color
+    color := "\033[38;2;255;107;53m"
+    return m.characterAnimator.RenderWithColor(color)
+}
+```
+
+### Complete Character Example
+
+```go
+package main
+
+import (
+    "fmt"
+    "os"
+    "time"
+
+    tea "github.com/charmbracelet/bubbletea"
+    "github.com/timlinux/blockfont"
+)
+
+type tickMsg time.Time
+
+type model struct {
+    animator *blockfont.CharacterAnimator
+    action   blockfont.AnimationAction
+}
+
+func initialModel() model {
+    return model{
+        animator: blockfont.NewCharacterAnimator(),
+        action:   blockfont.ActionIdle,
+    }
+}
+
+func tickCmd() tea.Cmd {
+    return tea.Tick(50*time.Millisecond, func(t time.Time) tea.Msg {
+        return tickMsg(t)
+    })
+}
+
+func (m model) Init() tea.Cmd {
+    return tickCmd()
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+    switch msg := msg.(type) {
+    case tea.KeyMsg:
+        switch msg.String() {
+        case "q":
+            return m, tea.Quit
+        case "w":
+            m.action = blockfont.ActionWalk
+            m.animator.SetAction(m.action)
+        case "r":
+            m.action = blockfont.ActionRun
+            m.animator.SetAction(m.action)
+        case "d":
+            m.action = blockfont.ActionDuck
+            m.animator.SetAction(m.action)
+        case "j":
+            m.action = blockfont.ActionJump
+            m.animator.SetAction(m.action)
+        case "i":
+            m.action = blockfont.ActionIdle
+            m.animator.SetAction(m.action)
+        case "f":
+            m.animator.SetFlipped(!m.animator.IsFlipped())
+        }
+
+    case tickMsg:
+        m.animator.Update()
+        return m, tickCmd()
+    }
+
+    return m, nil
+}
+
+func (m model) View() string {
+    color := "\033[38;2;255;107;53m"  // Kartoza orange
+    s := m.animator.RenderWithColor(color)
+    s += fmt.Sprintf("\n\nAction: %s", blockfont.GetActionName(m.action))
+    s += "\n[W]alk [R]un [D]uck [J]ump [I]dle [F]lip [Q]uit"
+    return s
+}
+
+func main() {
+    p := tea.NewProgram(initialModel())
+    if _, err := p.Run(); err != nil {
+        fmt.Printf("Error: %v\n", err)
+        os.Exit(1)
+    }
+}
+```
+
+### Getting All Actions
+
+```go
+// Get all available actions
+actions := blockfont.AllActions()
+
+for _, action := range actions {
+    name := blockfont.GetActionName(action)
+    fmt.Println(name)
+}
+// Output: Idle, Walk, Run, Duck, Jump, Wave
+```
+
 ## Spring Physics
 
 The animations use spring physics from charmbracelet/harmonica, which provides:

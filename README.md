@@ -244,9 +244,9 @@ Projects using blockfont:
 
 | Project | Description |
 |---------|-------------|
-| [Macaco](https://github.com/timlinux/macaco) | A terminal typing tutor with block letter display |
-| [Cheetah](https://github.com/timlinux/cheetah) | Speed typing game with animated block fonts |
-| [Baboon](https://github.com/timlinux/baboon) | Terminal-based text editor with block letter headers |
+| [Baboon](https://github.com/timlinux/baboon) | Terminal typing practice with block letter display and real-time feedback |
+| [Macaco](https://github.com/timlinux/macaco) | Gamified vim motion training with block letter prompts |
+| [Cheetah](https://github.com/timlinux/cheetah) | RSVP speed reading with block letter word presentation |
 
 *Using blockfont in your project? Open a PR to add it here!*
 
